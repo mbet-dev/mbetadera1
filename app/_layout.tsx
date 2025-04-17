@@ -1,39 +1,72 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { useColorScheme } from 'react-native';
+import { AuthProvider } from '@/context/AuthContext';
+import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const lightTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: '#4CAF50',
+    secondary: '#2196F3',
+  },
+};
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+const darkTheme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    primary: '#4CAF50',
+    secondary: '#2196F3',
+  },
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <PaperProvider theme={colorScheme === 'dark' ? darkTheme : lightTheme}>
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: '#FFFFFF',
+            },
+            headerTintColor: '#333333',
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
+            contentStyle: {
+              backgroundColor: '#F5F5F5',
+            },
+          }}
+        >
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="track-map"
+            options={{
+              title: 'Track Parcel',
+            }}
+          />
+          <Stack.Screen
+            name="chat/[parcelId]"
+            options={{
+              title: 'Chat',
+            }}
+          />
+          <Stack.Screen
+            name="create-delivery"
+            options={{
+              title: 'Create Delivery Order',
+            }}
+          />
+        </Stack>
+      </PaperProvider>
+    </AuthProvider>
   );
 }

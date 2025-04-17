@@ -1,45 +1,60 @@
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ThemedText } from './ThemedText';
+import Colors from '../constants/Colors';
+import { useColorScheme } from 'react-native';
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? 'light';
+  const [open, setOpen] = useState(false);
+  const rotate = useSharedValue(0);
+  const height = useSharedValue(0);
+  const colorScheme = useColorScheme() ?? 'light';
+  const color = Colors[colorScheme].text;
+
+  const arrowStyle = useAnimatedStyle(() => ({
+    transform: [{ rotateZ: `${rotate.value}deg` }],
+  }));
+
+  const handlePress = () => {
+    setOpen(!open);
+    rotate.value = withTiming(open ? 0 : 90, { duration: 150 });
+    height.value = withTiming(open ? 0 : 1, { duration: 150 });
+  };
 
   return (
-    <ThemedView>
-      <TouchableOpacity
-        style={styles.heading}
-        onPress={() => setIsOpen((value) => !value)}
-        activeOpacity={0.8}>
-        <IconSymbol
-          name="chevron.right"
-          size={18}
-          weight="medium"
-          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
-          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
-        />
-
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
-      </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+    <View style={styles.container}>
+      <Pressable onPress={handlePress} style={styles.titleContainer}>
+        <ThemedText style={styles.title}>{title}</ThemedText>
+        <Animated.View style={arrowStyle}>
+          <Ionicons name="chevron-forward" size={20} color={color} />
+        </Animated.View>
+      </Pressable>
+      {open && <View style={styles.content}>{children}</View>}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
+  container: {
+    overflow: 'hidden',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#F5F5F5',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   content: {
-    marginTop: 6,
-    marginLeft: 24,
+    padding: 16,
+    backgroundColor: '#F9F9F9',
   },
 });
